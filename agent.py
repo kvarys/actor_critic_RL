@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -98,6 +99,35 @@ class DDPG:
         if self.target_cntr % self.update_target == 0:
             self.update_target_nets()
 
+    def choose_action(self, state, noise_std=0.1):
+        """
+        Selects an action given a state, adding Gaussian noise for exploration.
+
+        Args:
+            state (numpy.ndarray): The current state of the environment.
+            noise_std (float): Standard deviation of the Gaussian noise.
+
+        Returns:
+            numpy.ndarray: The selected action with added exploration noise.
+        """
+        self.online_policy.eval()  # Disable Dropout and BatchNorm updates
+
+        # state_tensor = torch.tensor(state, dtype=torch.float32, device=self.device).unsqueeze(0)
+
+        with torch.no_grad():  # Disable gradient tracking for efficiency
+            # action = self.online_policy(state).cpu().numpy().squeeze(0)
+            action = self.online_policy.forward(state)
+
+        self.online_policy.train()  # Re-enable training mode
+
+        # Add Gaussian exploration noise
+        noise = np.random.normal(0, noise_std, size=action.shape)
+        action += noise
+
+        # Clip action within valid range
+        action = np.clip(action, -1, 1)
+
+        return action
 
     def update_target_nets(self, tau=0.005):
         """Soft update target networks: θ_target = τ * θ_online + (1 - τ) * θ_target"""
