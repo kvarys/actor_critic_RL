@@ -107,3 +107,18 @@ class DDPG:
         for target_param, online_param in zip(self.target_policy.parameters(), self.online_policy.parameters()):
             target_param.data.copy_(tau * online_param.data + (1 - tau) * target_param.data)
 
+    def save_params(self):
+        torch.save({
+            'actor': self.online_policy.state_dict(),
+            'critic': self.online_Q_fun.state_dict(),
+            'target_actor': self.target_policy.state_dict(),
+            'target_critic': self.target_Q_net.state_dict(),
+        }, "ddpg_weights.pth")
+
+    def load_params(self):
+        checkpoint = torch.load("ddpg_weights.pth", map_location=self.device)
+        self.online_policy.load_state_dict(checkpoint['actor'])
+        self.online_Q_fun.load_state_dict(checkpoint['critic'])
+        self.target_policy.load_state_dict(checkpoint['target_actor'])
+        self.target_Q_net.load_state_dict(checkpoint['target_critic'])
+
