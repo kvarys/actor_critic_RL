@@ -44,7 +44,7 @@ class DeepQNetwork(nn.Module):
         self.to(self.device)
 
     def forward(self, states, actions):
-        x = torch.cat([states, actions], dim=1)  # Concatenate along feature dimension
+        x = torch.cat([states, actions], dim=1).to(self.device)  # Concatenate along feature dimension
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         q_vals = self.fc3(x)
